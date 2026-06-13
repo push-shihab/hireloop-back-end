@@ -27,6 +27,19 @@ async function run() {
     await client.connect();
 
     const db = client.db("hire-loop");
+    const jobCollection = db.collection("all-jobs");
+
+    app.get("/api/jobs", async (req, res) => {
+      const { companyId } = req.query;
+      const result = await jobCollection.find({ userId: companyId }).toArray();
+      res.json(result);
+    });
+
+    app.post("/api/jobs/new", async (req, res) => {
+      const newJob = req.body;
+      const result = await jobCollection.insertOne(newJob);
+      res.json(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log(
