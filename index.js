@@ -28,16 +28,39 @@ async function run() {
 
     const db = client.db("hire-loop");
     const jobCollection = db.collection("all-jobs");
+    const companyCollection = db.collection("all-companies");
 
-    app.get("/api/jobs", async (req, res) => {
-      const { companyId } = req.query;
-      const result = await jobCollection.find({ userId: companyId }).toArray();
+    // getting all jobs
+    app.get("/api/all-jobs", async (req, res) => {
+      const result = await jobCollection.find().toArray();
       res.json(result);
     });
 
+    // getting the list of jobs by companies
+    app.get("/api/jobs", async (req, res) => {
+      const { companyId } = req.query;
+      const result = await jobCollection.find({ companyId }).toArray();
+      res.json(result);
+    });
+
+    // getting company data for individual recruiter
+    app.get("/api/company/self", async (req, res) => {
+      const { recruiterId } = req.query;
+      const result = await companyCollection.findOne({ recruiterId });
+      res.json(result);
+    });
+
+    // posting a new job
     app.post("/api/jobs/new", async (req, res) => {
       const newJob = req.body;
       const result = await jobCollection.insertOne(newJob);
+      res.json(result);
+    });
+
+    // creating a new company
+    app.post("/api/companies/new", async (req, res) => {
+      const newCompany = req.body;
+      const result = await companyCollection.insertOne(newCompany);
       res.json(result);
     });
 
