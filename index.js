@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 dotenv.config();
 app.use(cors());
@@ -40,6 +40,13 @@ async function run() {
     app.get("/api/jobs", async (req, res) => {
       const { companyId } = req.query;
       const result = await jobCollection.find({ companyId }).toArray();
+      res.json(result);
+    });
+
+    // getting individual job details
+    app.get("/api/jobs/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await jobCollection.findOne({ _id: new ObjectId(id) });
       res.json(result);
     });
 
