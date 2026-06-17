@@ -29,6 +29,10 @@ async function run() {
     const db = client.db("hire-loop");
     const jobCollection = db.collection("all-jobs");
     const companyCollection = db.collection("all-companies");
+    const applicationCollection = db.collection("all-applications");
+    const planCollection = db.collection("plans");
+    const subcriptionCollection = db.collection("subscriptions");
+    const userCollection = db.collection("user");
 
     // getting all jobs
     app.get("/api/all-jobs", async (req, res) => {
@@ -57,6 +61,28 @@ async function run() {
       res.json(result);
     });
 
+    // getting all applications
+    app.get("/api/applications", async (req, res) => {
+      const result = await applicationCollection.find().toArray();
+      res.json(result);
+    });
+
+    // getting all applications of individual job seeker
+    app.get("/api/applications/self", async (req, res) => {
+      const { applicantId } = req.query;
+      const result = await applicationCollection
+        .find({ applicantId })
+        .toArray();
+      res.json(result);
+    });
+
+    // getting plan for individual plan_id
+    app.get("/api/plans", async (req, res) => {
+      const { plan_id } = req.query;
+      const result = await planCollection.findOne({ id: plan_id });
+      res.json(result);
+    });
+
     // posting a new job
     app.post("/api/jobs/new", async (req, res) => {
       const newJob = req.body;
@@ -69,6 +95,31 @@ async function run() {
       const newCompany = req.body;
       const result = await companyCollection.insertOne(newCompany);
       res.json(result);
+    });
+    // applying for a job
+    app.post("/api/jobs/apply", async (req, res) => {
+      const newApplication = req.body;
+      const result = await applicationCollection.insertOne(newApplication);
+      res.json(result);
+    });
+
+    // inserting subscription
+    app.post("/api/subscription/new", async (req, res) => {
+      const subInfo = req.body;
+      const result = await subcriptionCollection.insertOne(subInfo);
+      if (result.insertedId) {
+        const findData = { email: subInfo.customerEmail };
+        const updatedData = {
+          $set: {
+            plan: subInfo.planId,
+          },
+        };
+        const updatedResult = await userCollection.updateOne(
+          findData,
+          updatedData,
+        );
+        res.json(updatedResult);
+      }
     });
 
     await client.db("admin").command({ ping: 1 });
